@@ -20,7 +20,7 @@ import com.google.gwt.event.shared.HandlerManager;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.Widget;
- 
+import com.google.gwt.xml.client.Element;
 
 public class FileManagerPresenter implements Presenter{
 
@@ -34,6 +34,7 @@ public class FileManagerPresenter implements Presenter{
 		HasClickHandlers getExportButton();
 		HasClickHandlers getImportButton();
 		HasClickHandlers getRefreshButton();
+		HasClickHandlers getRawButton();
 		Grid<GameListEntry> getGrid();
 		String getGameName();
 		String getServerAddress();
@@ -41,6 +42,7 @@ public class FileManagerPresenter implements Presenter{
 		
 		void setServerAddress(String address);
 		void setLocation(String location);
+		void setRawXML(String xml);
 	}
 	
 	
@@ -49,11 +51,12 @@ public class FileManagerPresenter implements Presenter{
 		this.eventBus = eb;
 		String url = GWT.getHostPageBaseURL().replace("explodingauthor/", "");
 		//display.setServerAddress(url + "makefest/");
-		display.setServerAddress(url + "exploding/");
+		display.setServerAddress(url + "makefest/");
 	}
 	
 	private void init(){	    
 	   //Datastore.getGameList(display.getServerAddress());
+		
 		Timer t = new Timer() {
 		    public void run() {
 		    	getGameList();
@@ -73,10 +76,7 @@ public class FileManagerPresenter implements Presenter{
 			public void onClick(ClickEvent event) {
 				
 				Datastore.export(display.getGameName(), display.getLocation() ,display.getServerAddress());
-				
-				//Log.debug("firing a new game export event..name = " + display.getGameName());
-				//eventBus.fireEvent(new GameStateExportEvent(display.getGameName()));
-				
+		
 			}});
 		
 		display.getImportButton().addClickHandler(new ClickHandler(){
@@ -107,11 +107,20 @@ public class FileManagerPresenter implements Presenter{
 
 			@Override
 			public void onClick(ClickEvent event) {
-				Log.debug("getting game list");
+				
 				Datastore.getGameList(display.getServerAddress());
 				
 			}});
 		
+		display.getRawButton().addClickHandler(new ClickHandler(){
+
+			@Override
+			public void onClick(ClickEvent event) {
+				Element e = Datastore.getXML(currentLocation);
+				if (e != null){
+					display.setRawXML(e.toString());
+				}
+			}});
 		
 	}
 	
@@ -130,7 +139,6 @@ public class FileManagerPresenter implements Presenter{
 	
 	@Override
 	public void go(HasWidgets container) {
-		// TODO Auto-generated method stub
 		display.asWidget().setVisible(true);
 		subscribe();
 		bind();

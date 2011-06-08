@@ -80,17 +80,26 @@ public class Datastore {
 		Log.debug("exporting with location " + location);
 		
 		if (name == null || location == null || address == null){
+			Log.debug("cannot upload game please make sure you specify a game name, location and server address");
+			
 			showMessage("cannot upload game", "please make sure you specify a game name, location and server address");
 			return;
 		}
 		
 		if (location.trim().equals("") || name.trim().equals("") || address.trim().equals("")){
+			Log.debug("cannot upload game please make sure you specify a game name, location and server address");
 			showMessage("cannot upload game", "please make sure you specify a game name, location and server address");
 			return;
 		}
-		String s = getXML(location).toString();		
+		Log.debug("getting xml...");
+		Element e = getXML(location);
+		
+		String s = null;
+		
+		if (e!=null){
+			s = e.toString();		
+		}
 
-		Log.debug(s);
 		
 		if (s != null){
 			upload(s, name, address);
@@ -106,7 +115,7 @@ public class Datastore {
 		}
 
 
-
+		
 		String url = address + "author/gameupload.html";
 
 		RequestBuilder builder = new RequestBuilder(RequestBuilder.POST, URL.encode(url));
@@ -126,6 +135,7 @@ public class Datastore {
 			public void onResponseReceived(Request request,
 					Response response) {
 				if (200 == response.getStatusCode()){
+					Log.debug("successfully uploded");
 					Log.debug(response.getText());
 				}else{ 
 					Log.debug("ERROR " + response.getText());
@@ -134,6 +144,7 @@ public class Datastore {
 		});
 
 		try{
+			Log.debug("sending the data to the server...");
 			builder.send();
 		}catch(Exception e){
 			Log.debug("error " + e.getMessage());
@@ -169,12 +180,27 @@ public class Datastore {
 		return zoneid + s;
 	}
 
+	public static void removeTimeLineEntry(String zoneid){
+		boolean removed = false;
+		for (int i = 0; i < timelinestore.getCount(); i++){
+			TimeLineModel m = timelinestore.getAt(i);
+			if (m.getZone().getId().equals(zoneid)){
+				timelinestore.remove(i);
+				removed = true;
+				break;
+			}
+		}
+		
+		if (removed){
+			deleteZone(zoneid, TimeLineEntry.DEFAULT);
+		}
+	}
 
 	private static void addZone(Zone zone, int type){
 		String key = getKey(zone.getId(), type);
 		zones.put(key, zone);
 		eventBus.fireEvent(new ZoneCreatedEvent(zone.getId(), type, false));
-		zoneIndex +=1;
+		zoneIndex = Math.max(zoneIndex, Integer.parseInt(zone.getId())) + 1;
 	}
 
 	public static void deleteZone(String zoneId, int type){
@@ -195,41 +221,51 @@ public class Datastore {
 		return tmpzones;
 	}
 
-
+	
 	public static ListStore<TimeLineModel> getStore(){
 		return timelinestore;
 	}
 
 	private static String getStartYear(){
-
-		if (timelinestore == null)
+		
+		if (timelinestore == null){
+		
 			return "";
+		}
 
 		try{
 			TimeLineModel m = timelinestore.getAt(0);
-
+			
 			if ( (m==null) || m.get("name1") == null){	
+				
 				return "";
 			}
 			else{
 				ArrayList<TimeLineEntry> list = m.get("name1");
-				if (list != null && list.size() > 0)
+				if (list != null && list.size() > 0){
+					
 					return list.get(0).getName();
+				}
 			}
 			return "";
 		}catch(Exception e){
+			Log.debug("exception ! " + e.getMessage());
 			return "";
 		}
 	}
 
 	private static String getEndYear(){
-		if (timelinestore == null)
+		
+		if (timelinestore == null){
 			return "";
+		}
 
+		
 		try{
 			TimeLineModel m = timelinestore.getAt(0);
 
 			if (m == null || m.get("name1") == null){
+				
 				return "";
 			}
 
@@ -242,71 +278,83 @@ public class Datastore {
 				if ((list = m.get("name" + i)) != null){
 					if (list.size() > 0){
 						if (!list.get(0).getName().equals(""))
+							
 							return list.get(0).getName();
 
 					}
-
 				}
 			}
 			return "";
 		}catch(Exception e){
+			Log.debug(e.getMessage());
 			return "";
 		}
 	}
 
 	private static boolean checkYears(String year1, String year2){
+		
+		if (year1 != null && year2 != null){
+			
+			if (year1.equals("")){
+				showMessage("cannot upload game", "please check that you have a valid start year in the timeline");
+				return false;
+			}
+			if (year2.equals("")){
+				showMessage("cannot upload game", "please check that you have a valid end year in the timeline");
+				return false;
+			}
+			
+			try{
+				Integer.valueOf(year1);
+			}catch(Exception n){
+				showMessage("cannot upload game", "please check that you have a valid start year (i.e a number) in the timeline");
+				return false;
+			}
 
-
-		if (year1.trim() == ""){
-			showMessage("cannot upload game", "please check that you have a valid start year in the timeline");
-			return false;
+			try{
+				Integer.valueOf(year2);
+			
+			}catch(Exception n){
+				showMessage("cannot upload game", "please check that you have a valid end year (i.e a number) in the timeline");
+				return false;
+			}
+			
+			return true;
+		
 		}
-		if (year2.trim() == ""){
-			showMessage("cannot upload game", "please check that you have a valid end year in the timeline");
-			return false;
-		}
-		try{
-			Integer.valueOf(year1);
-		}catch(NumberFormatException n){
-			showMessage("cannot upload game", "please check that you have a valid start year (i.e a number) in the timeline");
-			return false;
-		}
-
-		try{
-			Integer.valueOf(year2);
-		}catch(NumberFormatException n){
-			showMessage("cannot upload game", "please check that you have a valid end year (i.e a number) in the timeline");
-			return false;
-		}
-
-		return true;
+		return false;
 	}
 
 	public static Element getXML(String location){
-
+		
 		Document xmlDoc = XMLParser.createDocument();
+		
 		Element gameState = xmlDoc.createElement("gameState");
+		
 		gameState.setAttribute("version", "1.0");
-
+		
 		if (location.trim().equals(""))
 			location = "Unknown";
-
+		
 		XMLUtil.addElement(gameState, xmlDoc, "location", location);
-
+	
 		String startYear = getStartYear();
+	
 		String endYear = getEndYear();
+	
 
-		if (!checkYears(startYear, endYear))
+		
+		if (!checkYears(startYear, endYear)){
 			return null;
-
-
+		}
+		
 		XMLUtil.addElement(gameState, xmlDoc, "startYear", startYear);
 		XMLUtil.addElement(gameState, xmlDoc, "endYear", endYear);
-
+		
 		//timeEvents
 		try{
 			Element timeEvents = xmlDoc.createElement("timeEvents");
-
+			
 
 			for (int i = 0; i < timelinestore.getCount(); i++){
 
@@ -327,7 +375,6 @@ public class Datastore {
 										if (tle.getName() != null){
 
 											if (!(tle.getName().equals(""))){
-
 												timeEvents.appendChild(tle.toXML());
 											}
 										}
@@ -340,15 +387,17 @@ public class Datastore {
 					}
 				}
 			}
-
+			
 			gameState.appendChild(timeEvents);
-
+			
 			//zones
 			Element ezones = xmlDoc.createElement("zones");
 
 			for (Zone z : zones.values()){
 				if (Integer.valueOf(z.getId())!= 0){
+					
 					ezones.appendChild(z.toXML());
+					
 				}
 			}
 
@@ -357,6 +406,7 @@ public class Datastore {
 		}catch(Exception e){
 			Log.debug("ERRROR EXPORTING ---> " + e.getMessage());
 		}
+		
 		return gameState;
 	}
 
@@ -378,8 +428,7 @@ public class Datastore {
 
 		//String url = GET_PROXY + "?url=" + address + "author/list.html";
 
-		Log.debug("sending to " + url);
-
+	
 		builder = new RequestBuilder(RequestBuilder.GET, URL.encode(url));
 
 		try{
@@ -395,7 +444,7 @@ public class Datastore {
 				public void onResponseReceived(Request request,
 						Response response) {
 					if (200 == response.getStatusCode()){
-						Log.debug(response.getText());
+						//Log.debug(response.getText());
 						generateJSONListObjects(response.getText());
 					}else{ 
 						Log.debug("got following " + response.getText());
@@ -517,7 +566,7 @@ public class Datastore {
 
 					JSONObject zoneobject = jobj.get("zone").isObject();
 					uk.ac.nottingham.horizon.exploding.author.client.jsmodel.Zone z = buildZone(zoneobject.toString());
-					Log.debug("zone id is " + z.getID());
+					
 
 					JSONArray coords = zoneobject.get("coordinates").isArray();
 					//Log.debug(coords.toString());
@@ -541,6 +590,7 @@ public class Datastore {
 						Polygon poly = createPolygon(latLngArray, colour);
 						Zone azone = new Zone(String.valueOf(z.getOrgId()), z.getName(), poly, colour);
 						addZone(azone, TimeLineEntry.DEFAULT);
+						
 					}
 
 				}catch(Exception e){

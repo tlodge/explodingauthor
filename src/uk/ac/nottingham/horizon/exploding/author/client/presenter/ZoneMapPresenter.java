@@ -72,14 +72,13 @@ public class ZoneMapPresenter implements Presenter{
 
 	private void bind(){
 		
-
+		
 	
 		display.getDeleteZoneButton().addClickHandler(new ClickHandler(){
 
 			@Override
 			public void onClick(ClickEvent event) {
-				Log.debug("delete polygons button clicked");
-				//deletePolygons();
+			
 			}
 			
 			
@@ -96,37 +95,11 @@ public class ZoneMapPresenter implements Presenter{
 
 		display.getMap().addMapClickHandler(new MapClickHandler() {
 			public void onClick(MapClickEvent e) {
-				/*boolean polyclicked = false;
-				if (zones.size() > 0){
-					for (Polygon p : zones){
-						if (p.getBounds().containsLatLng(e.getLatLng()));
-						polyclicked = true;
-					}
-				}
-				if (polyclicked){
-					System.err.println("map clicked!!");
-				}*/
-				//if (currentPolygon != null){
-					//currentPolygon.setEditingEnabled(false);
-				//}
+				
 			}
 		});
 		
 	}
-	
-	/*
-	private void addZone(String zone){
-		ArrayList<String> row = new ArrayList<String>();
-		row.add(zone);
-		timelinedata.add(row);
-		
-		Grid table = display.getTimeLineView().getTableView();
-		
-		table.resizeRows(timelinedata.size());
-		
-		table.setText(timelinedata.size()-1, 0, zone);
-		
-	}*/
 	
 	public void deletePolygons(){
 		ArrayList<Zone> zones = Datastore.getZones();
@@ -142,6 +115,7 @@ public class ZoneMapPresenter implements Presenter{
 	public void deletePolygon(){
 	  if (currentPolygon != null)
 			  display.getMap().removeOverlay(currentPolygon);
+	  currentPolygon = null;
 	}
 	
 	private void deleteZone(String zoneid){
@@ -149,10 +123,14 @@ public class ZoneMapPresenter implements Presenter{
 		Zone z = Datastore.getZone(zoneid, TimeLineEntry.DEFAULT);
 		currentPolygon = z.getPolygon();
 		deletePolygon();
+		/*
+		 * can now delete zone details..nasty
+		 */
+		Datastore.removeTimeLineEntry(zoneid);
 	}
 	
 	private void addOverlay(String zoneid){
-		//Log.debug("am adding new overlay...");
+		
 		Zone z = Datastore.getZone(zoneid, TimeLineEntry.DEFAULT);
 		 if (z != null){
 			 currentPolygon = z.getPolygon();
@@ -184,7 +162,7 @@ public class ZoneMapPresenter implements Presenter{
 		eventBus.addHandler(ZoneCreatedEvent.TYPE,
 				 new ZoneCreatedEventHandler() {
 				          public void onZoneCreated(ZoneCreatedEvent event) {
-					           //Log.debug("zone created "  + event.fromMap());
+					           
 					            if (!event.fromMap()){
 					            	addOverlay(event.getId());
 					            }
@@ -194,9 +172,9 @@ public class ZoneMapPresenter implements Presenter{
 		eventBus.addHandler(ZoneMapCenterEvent.TYPE,
 				 new ZoneMapCenterEventHandler() {
 				          public void onCenterRequest(ZoneMapCenterEvent event) {
-					         Log.debug("centering map!");
+					       
 					         display.getMap().setCenter(event.getPoint());
-					         //addNewZone();
+					        
 					      }
 			    });
 		
@@ -204,21 +182,7 @@ public class ZoneMapPresenter implements Presenter{
 
 			@Override
 			public void onTimeLineEntrySelected(TimeLineEntrySelectedEvent event) {
-				deselectAll();
-				
-				//can get npe heer??
-				
-				/*Zone z = Datastore.getZone(event.getTimeLineEntry().getZoneid());//Datastore.getZone(event.getZoneId());
-				
-				if(z!=null){
-					Polygon p = z.getPolygon();
-					if (p!=null){
-						deselectAll();
-						p.setEditingEnabled(true);
-						currentPolygon = p;
-					}
-				}*/
-				
+				deselectAll();		
 			}
 			
 		});
@@ -266,8 +230,6 @@ public class ZoneMapPresenter implements Presenter{
 				deselectAll();
 				poly.setEditingEnabled(true);
 				currentPolygon = poly;
-				
-				///maybe fire a poly clicked event here??
 			}
 		});
 	    

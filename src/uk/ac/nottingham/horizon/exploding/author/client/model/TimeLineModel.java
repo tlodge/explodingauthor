@@ -6,6 +6,10 @@ import com.extjs.gxt.ui.client.data.BaseModel;
 
 public class TimeLineModel extends BaseModel
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3433460473145014210L;
 	private Zone zone;
 	//private HashMap<String,Object> entries;
 	

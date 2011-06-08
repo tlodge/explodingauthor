@@ -54,14 +54,15 @@ public class ServerManagerPresenter implements Presenter {
 		//display.getNewServerButton().setEnabled(false);
 		display.getUseServerButton().setEnabled(false);
 		
-		Timer t = new Timer() {
+		/*Timer t = new Timer() {
 		    public void run() {
 		    	InstanceDataStore.listInstances();
 		    }
 		};
-		t.scheduleRepeating(10000);
+		t.scheduleRepeating(10000);*/
 	}
 
+	
 	
 	void updateState(){
 		
@@ -130,7 +131,7 @@ public class ServerManagerPresenter implements Presenter {
 			@Override
 			public void onClick(ClickEvent event) {
 				if (selectedEntry != null){
-					String url = "http://"+selectedEntry.getDns()+"/exploding/";
+					String url = "http://"+selectedEntry.getDns()+"/makefest/";
 					eventBus.fireEvent(new ServerSelectedEvent(url));
 					HelpDialog d = new HelpDialog("Server changed","The url you need to type into the phone is " + url + "rpc/");
 					d.show();

@@ -24,15 +24,18 @@ import com.extjs.gxt.ui.client.widget.grid.ColumnConfig;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.TextArea;
 
 public class FileManagerView extends Window implements FileManagerPresenter.Display{
 
 	private Button exportButton;
 	private Button importButton;
+	private Button rawButton;
 	private Button refreshButton;
 	private TextBox gameName;
 	private TextBox serverTextBox;
 	private TextBox locationTextBox;
+	private TextArea rawTextArea;
 	
 	private Grid<GameListEntry> grid;
 	
@@ -132,12 +135,34 @@ public class FileManagerView extends Window implements FileManagerPresenter.Disp
 		horizontalPanel_2.add(gameName);
 		gameName.setWidth("177px");
 		
+		
+		
 		exportButton = new Button("Export");
 		verticalPanel_1.add(exportButton);
 		verticalPanel_1.setCellHorizontalAlignment(exportButton, HasHorizontalAlignment.ALIGN_CENTER);
 		verticalPanel_1.setCellVerticalAlignment(exportButton, HasVerticalAlignment.ALIGN_MIDDLE);
 		fldstExportToServer.setHeading("Export to Server");
 
+		FieldSet fldstRawXML = new FieldSet();
+		
+		fldstRawXML.setHeading("Raw XML");
+		VerticalPanel verticalPanel_3 = new VerticalPanel();
+		verticalPanel_3.setSpacing(5);
+		fldstRawXML.add(verticalPanel_3);
+		rawTextArea = new TextArea();
+		rawTextArea.setWidth("320px");
+		rawTextArea.setHeight("150px");
+		verticalPanel_3.add(rawTextArea);
+		
+		HorizontalPanel horizontalPanel_4 = new HorizontalPanel();
+		rawButton = new Button("Refresh");
+		
+		horizontalPanel_4.add(rawButton);
+		horizontalPanel_4.setCellVerticalAlignment(rawButton, HasVerticalAlignment.ALIGN_MIDDLE);
+		horizontalPanel_4.setCellHorizontalAlignment(rawButton, HasHorizontalAlignment.ALIGN_CENTER);
+		verticalPanel_3.add(horizontalPanel_4);
+		
+		add(fldstRawXML);
 	}
 
 	
@@ -164,6 +189,11 @@ public class FileManagerView extends Window implements FileManagerPresenter.Disp
 		return refreshButton;
 	}
 
+	@Override
+	public HasClickHandlers getRawButton() {
+		return rawButton;
+	}
+	
 	@Override
 	public Grid getGrid() {
 		return grid;
@@ -201,5 +231,10 @@ public class FileManagerView extends Window implements FileManagerPresenter.Disp
 		
 	}
 
+	@Override
+	public void setRawXML(String xml) {
+		rawTextArea.setText(xml);
+		
+	}
 
 }

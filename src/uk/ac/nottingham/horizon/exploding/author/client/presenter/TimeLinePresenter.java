@@ -107,8 +107,9 @@ public class TimeLinePresenter implements Presenter{
 
 			@Override  
 			public void componentSelected(ButtonEvent ce) { 
-				if (currentZone != null)
+				if (currentZone != null){
 					eventBus.fireEvent(new ZoneDeletedEvent(currentZone));
+				}
 			}  
 		});
 
@@ -172,15 +173,8 @@ public class TimeLinePresenter implements Presenter{
 	}
 
 	private void deleteZone(String zoneid){
-		ListStore<TimeLineModel> store = Datastore.getStore();
-		for (int i = 0; i < store.getCount(); i++){
-			TimeLineModel m = store.getAt(i);
-			if (m.getZone().getId().equals(zoneid)){
-				store.remove(i);
-				display.resizeit();
-				break;
-			}
-		}
+		
+		display.resizeit();
 	}
 
 	
